@@ -148,12 +148,15 @@ to your proposed modification.
 \toprule
 \textbf{Model} & \textbf{Metric 1 (Mean $\pm$ Std)} & \textbf{Metric 2 (Mean $\pm$ Std)} \\
 \midrule
-Published baseline & [Value from paper] & [Value from paper] \\
-Our reproduction & [Your value] $\pm$ [Std] & [Your value] $\pm$ [Std] \\
-Our proposed (early) & [Your value] $\pm$ [Std] & [Your value] $\pm$ [Std] \\
+Published baseline & 3.17 &  9.46$\pm$ 0.11 \\
+Our reproduction & 5.71 & [Your value] $\pm$ [Std] \\
+Our proposed (early) & N/A & N/A \\
 \bottomrule
 \end{tabular}
-\captionof{table}{Preliminary results on [DATASET], [SPLIT]. All results are mean $\pm$ std over 3 seeds.}
+\captionof{table}{Preliminary results on MNIST, 10,000 images. All results are mean $\pm$ std over 3 seeds.}
+
+INSERT TABLE HERE
+
 \end{center}
 
 \subsection{Qualitative Analysis}
@@ -165,7 +168,7 @@ describe what is being shown.]
 \begin{figure}[h]
   \centering
   % \includegraphics[width=0.8\linewidth]{figures/qualitative.png}
-  \caption{[FIGURE CAPTION: describe the figure and what it shows.]}
+  \caption{Comparison between a DDPM generated set of images, and the MNIST images the model was trained on. On a 28x28 grid, the model's output looks indistinguishable from the training dataset's images that were drawn by hand.}
   \label{fig:qual}
 \end{figure}
 
@@ -182,10 +185,9 @@ addressed or plan to address them. Did you deviate from your proposal timeline?
 If so, explain why and provide an updated plan.
 \end{guidancebox}
 
-[DESCRIBE: (1) Technical obstacles (bugs, slow training, dataset issues),
-(2) Conceptual challenges (method harder than expected, results not matching),
-(3) How you resolved or plan to resolve each issue,
-(4) Updated timeline for Weeks 7--10.]
+There were quite a few technical obstacles with the DDPM and DDIM versions of the project, mainly centered around compute power. Google Colab's free version sometimes did not allow us to access the GPU's and TPU's needed to train our model, which caused issues in trying to run the model multiple times to capture results. When we had access to the necessary compute, the datasets and model mostly acted as intended and allowed us to experiment and work on the model freely.
+Developing the DDPM was difficult, especially conceptually understanding the build of a UNet and how a trained UNet would be able to generate an image, but working more with PyTorch and understanding the literature from Ho et. Al (INSERT REFERENCE HERE) helped tremendously. After the initial concept of the DDPM was created and working as intended, building off it for the different variations and the DDIM was much easier.
+Going forward, we plan to run all tests for the finished version of each model one after the other, to avoid being locked out of GPU/TPU use by Google Colab. We also intend to dive deeply into the Classifier Free Guidance and Consistency model literature before we start building, so we have a greater understanding of the architecture before we start building.
 
 \subsection{Updated Week 7--10 Plan}
 
@@ -193,10 +195,10 @@ If so, explain why and provide an updated plan.
 \toprule
 \textbf{Week} & \textbf{Tasks} & \textbf{Responsible} \\
 \midrule
-7 & [Updated tasks] & [Name] \\
-8 & [Updated tasks] & [Name] \\
-9 & [Updated tasks] & [Name] \\
-10 & [Final report + presentation] \textbf{(Final due)} & All \\
+7 & Build and test Classifier Free Guidance model & Spencer \\
+8 & Build and test Consistency model, start final report & Oliver \\
+9 & Finish final report and practice presentation & All \\
+10 & Submit final report and present \textbf{(Final due)} & All \\
 \bottomrule
 \end{tabular}
 
