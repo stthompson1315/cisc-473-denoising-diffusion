@@ -1,0 +1,147 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage{amsmath, amssymb}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+\usepackage{parskip}
+\geometry{margin=1in}
+
+\definecolor{courseblue}{HTML}{002452}
+\definecolor{coursegold}{HTML}{FABD0F}
+\definecolor{coursered}{HTML}{B90E31}
+\definecolor{lightblue}{HTML}{E8EEF7}
+
+\hypersetup{colorlinks=true,linkcolor=courseblue,urlcolor=coursered}
+
+\tcbuselibrary{skins}
+\newtcolorbox{guidancebox}{enhanced,colback=lightblue,colframe=courseblue,
+  sharp corners,leftrule=4pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\textcolor{courseblue}{\textbf{CISC 867 --- Deep Learning | Fall 2026}}}
+\fancyhead[R]{\small\textcolor{courseblue}{Project Proposal}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}{\large\bfseries\color{courseblue}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{courseblue}}{}{0em}{}
+
+%% ════════════════════════════════════════════════════════════════
+%% INSTRUCTIONS FOR STUDENTS
+%% Replace every [PLACEHOLDER] with your actual content.
+%% Delete all \guidancebox blocks before submitting.
+%% Submit as a compiled PDF + .tex source in a .zip archive.
+%% ════════════════════════════════════════════════════════════════
+
+\begin{document}
+
+{\centering
+  {\Large\textbf{CISC 867: Deep Learning --- Project Proposal}}\\[0.5em]
+  {\large\textit{P18: Efficient Denoising Diffusion Models for Small-Scale Image Generation}}\\[0.4em]
+  \textbf{Group Members:}\\{}
+  Spencer Thompson \quad 20263548 \quad (Role: Project, Research, Engineering Lead)\\{}
+  \textbf{GitHub Repository:} \url{https://github.com/stthompson1315/cisc-473-denoising-diffusion}\\[0.3em]
+  \textbf{Date:} \today\\[0.4em]
+  \rule{\linewidth}{0.4pt}
+}
+
+\section{Problem Statement and Motivation}
+
+DDPM, or Denoising Diffusion Probabilistic Models, are the gold standard for AI image generation in the modern era. The model denoises a noisy image that is fed to it, creating a clear image as the end product. While the models tend to be accurate and produce results properly, they denoise in a step-by-step manner causing issues with efficiency. DDIM, or Denoising Diffusion Implicit Models, as well as Consistency Models, are quicker with their denoising process but can produce less accurate pictures. The goal is to find a model and architecture that will have the speed and efficiency of DDIM or Consistency Models while keeping the accuracy of DDPM. One issue with this approach is the lack of an all-encompassing metric to determine the success of a model, that measures output quality (like FID), but also takes into account the speed at which the output is generated as well as the compute power used. With a more inclusive metric, researchers could easily test their models and make adjustments based on one number, rather than having to go through an elaborate testing suite to measure their model's performance, making it easier to improve image generation models. If a more efficient, still accurate version of AI image generation can be developed, it could be applied to many different use-cases including advertising, scientific modeling and more. As Ho et. al mention in their paper \textit{Denoising Diffusion Probabilistic Models}, that any progress in this field "may serve to amplify any impacts that generative models have had (and will have) on the broader world".
+
+\section{Literature Survey}
+
+
+\subsection{Related Works}
+
+\paragraph{[Paper 1: Jonathan Ho, Ajay Jain, Pieter Abbeel, 2020, UC Berkeley.]}
+Ho et. al showcased the use of DDPM to achieve a state of the art (at the time) FID score of 3.17 on the unconditional CIFAR10 dataset. The researchers proved that DDPM was a useful and accurate model to generate images, but only focused on achieving high scores on the image-generation tests rather than optimizing for speed or efficiency. My experiment will build off this work by testing DDPM against other image-generation models, and I will be using the github link in the paper for the base level DDPM at https://github.com/hojonathanho/diffusion.
+
+\paragraph{[Paper 2: Alexander Quinn Nichol, Prafulla Dhariwal, 2021, International Conference of Machine Learning.]}
+Nichol and Dhariwal iterated and improved the classic DDPM model, making it more efficient by having the model learn variances of the reverse diffusion process. This caused the DDPM to become more efficient, and to be able to sample with much fewer forward passes. This paper is highly related to my experiment, as it aims to increase the speed at which an image is generated while losing as little quality as possible. 
+
+\paragraph{[Paper 3: Jiaming Song, Chenlin Meng, Stefano Ermon, 2022, International Conference on Learning Representations.]}
+Song et. al saw the work that was being done on DDPM, and wanted to improve the process by creating a related but more efficient model known as DDIM, or Denoising Diffusion Implicit Models. They use Non-Markovian diffusion processes rather than Markovian ones that DDPM uses, which keep the quality high but the sampling process happens much faster. This paper is also directly related to my experiment, as DDIM aims to make the image generation process more efficient while simultaneously keeping the image quality high.
+
+\paragraph{[Paper 4: yanwu xu, Mingming Gong, Shaoan Xie, Wei Wei, Matthias Grundmann, Kayhan Batmanghelich, Tingbo Hou, 2023, Advances in Neural Information Processing Systems.]}
+xu et. al use a combination of a DDPM and a DDIM to achieve a combination between accuracy, quality and efficiency. They utilized an implicit model for matching the marginal distributions of noisy data, then used an explicit model for the conditional distribution of forward diffusion. This is a very interesting and unique approach, and relates to my purpose of using existing diffusion techniques to achieve boosts in efficiency while maintaining quality. Although I will not be using a Semi-Implicit Denoising Diffusion Model (SIDDM), the idea of combining multiple techniques is intriguing and is the type of idea that I want to utilize in my experiment.
+
+\paragraph{[Paper 5: Yang Song, Prafulla Dhariwal, Mark Chen, Ilya Sutskever, 2023, OpenAI Submission.]}
+Song et. al have identified the issues with DDPM, and wanted to create a more efficient method of image generation. Their proposal to fix this problem, rather than DDIM or SIDDM as seen before, is to create a new type of model called the Consistency Model. They use one-step generation rather than iterative sampling, which increases the speed of image generation substantially compared to DDPM. Their FID score was found to be 3.55, which is only slightly worse performance than a DDPM, while decreasing the time it takes to produce the output. This model is very interesting for my experiment, as it seems to be an almost perfect solution to the efficiency issue that has been identified within the image generation space.
+
+\subsection{Open Problem}
+
+My project aims to contribute a specific comparison between different types of image generation models, to empirically examine the benefits and drawbacks of each type of image generation model. One common theme I have noticed between these papers is that the goal of the innovations in Diffusion modeling is to increase efficiency, while keeping the quality (measured by FID score) fairly high. I want to develop a new metric to measure an image-generating model that combines quality, efficiency and other metrics to give an all-in-one score to a model and its outputs so that we can quantify how well a model is performing, and whether the tradeoff between efficiency and quality is worth it.
+
+\section{Proposed Methodology}
+
+\subsection{Baseline}
+
+The baseline model will be the DDPM model created by Ho et. al, from the following Github repository: https://github.com/hojonathanho/diffusion. The base dataset will be the MNIST dataset, and the metric used to measure success will be the FID metric. The DDIM and Consistency Models will also be tested, along with using the CIFAR-10 dataset.
+
+\subsection{Proposed Extension}
+
+The proposed extension is to develop a new metric to use instead of FID, which will capture the same quality checks but also introduce a measurement for efficiency and data requirements to test the model as a whole, rather than just the output.
+
+\subsection{Evaluation Plan}
+
+\begin{itemize}[noitemsep]
+  \item The datasets used will be the MNIST and the CIFAR-10 image datasets
+  \item To start, the metric used to compare models will be the FID test, but that will be replaced by the custom metric by the end of the experiment
+  \item The baseline scores for each model will be taken from the research papers above, with 3.55 FID score for a Consistency model and a 3.12 FID score for a DDPM model
+  \item Each model will record 10 FID scores, and will run with the new metric 20 times to test the metric, then test the models based on the metric.
+\end{itemize}
+
+\subsection{Early Novel Contribution (Optional Bonus)}
+
+My novel contribution idea is to create a new metric to score image generation models on, that takes into account quality like the existing tests, but also speed and efficiency which will allow for an at-a-glance evaluation of how well a model does at its purpose.
+
+\section{Project Timeline and Roles}
+
+\begin{center}
+\begin{tabular}{lp{7cm}l}
+\toprule
+\textbf{Week} & \textbf{Tasks} & \textbf{Responsible} \\
+\midrule
+1 & Read papers, set up repo, due diligence research & Spencer \\
+2 & Draft and finish proposal \textbf{(Proposal due)} & Spencer \\
+3 & Create DDPM and train on MNIST & Spencer \\
+4 & Test DDPM using FID & Spencer \\
+5 & Train DDPM on CIFAR-10 and test & Spencer \\
+6 & Implement DDIM and test, generate new metric \textbf{(Midterm due)} & Spencer \\
+7 & Implement Consistency model and test & Spencer \\
+8 & Review findings and continue testing all three models & Spencer \\
+9 & Create report with findings & Spencer \\
+10 & Finish report and submit \textbf{(Final due)} & Spencer \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Contribution Declaration}
+
+\begin{tabular}{lcc}
+\toprule
+\textbf{Member} & \textbf{Primary Responsibilities} & \textbf{Estimated \%} \\
+\midrule
+{Spencer Thompson} & Literature, development, data, all else & 100\%  \\
+\bottomrule
+\end{tabular}
+
+\section{References}
+
+\begin{enumerate}[label={[\arabic*]},leftmargin=*]
+  \item Jonathan Ho, Ajay Jain, Pieter Abbeel, 2020. ``Denoising Diffusion Probabilistic Models.'' \textit{UC Berkeley}. arXiv:2006.11239v2
+  \item Alexander Quinn Nichol, Prafulla Dhariwal, 2021. ``Denoising Diffusion Probabilistic Models.'' \textit{International Conference
+of Machine Learning}. http://proceedings.mlr.press/v139/nichol21a/nichol21a.pdf
+  \item Jiaming Song, Chenlin Meng, Stefano Ermon, 2022. ``Denoising Diffusion Implicit Models.'' \textit{International Conference on Learning Representations}. arXiv:2010.02502
+  \item yanwu xu, Mingming Gong, Shaoan Xie, Wei Wei, Matthias Grundmann,
+Kayhan Batmanghelich, Tingbo Hou, 2023. ``Semi-Implicit Denoising Diffusion Models (SIDDMs).'' \textit{Advances in Neural Information Processing Systems}. 10.52202/075280-0762
+  \item Yang Song, Prafulla Dhariwal, Mark Chen, Ilya Sutskever, 2023. ``Consistency Models.'' \textit{OpenAI Submission}. arXiv:2303.01469v2
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,274 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage{amsmath, amssymb}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+\usepackage{graphicx}
+\usepackage{parskip}
+\usepackage{caption}
+\geometry{margin=1in}
+
+\definecolor{courseblue}{HTML}{002452}
+\definecolor{coursegold}{HTML}{FABD0F}
+\definecolor{coursered}{HTML}{B90E31}
+\definecolor{lightblue}{HTML}{E8EEF7}
+\definecolor{lightgold}{HTML}{FEF8E3}
+
+\hypersetup{colorlinks=true,linkcolor=courseblue,urlcolor=coursered}
+\tcbuselibrary{skins}
+\newtcolorbox{guidancebox}{enhanced,colback=lightblue,colframe=courseblue,
+  sharp corners,leftrule=4pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{notebox}{enhanced,colback=lightgold,colframe=coursegold,
+  sharp corners,leftrule=4pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\textcolor{courseblue}{\textbf{CISC 867 --- Deep Learning | Fall 2026}}}
+\fancyhead[R]{\small\textcolor{courseblue}{Midterm Report}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\titleformat{\section}{\large\bfseries\color{courseblue}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{courseblue}}{}{0em}{}
+
+\begin{document}
+
+{\centering
+  {\Large\textbf{CISC 867: Deep Learning --- Midterm Report}}\\[0.5em]
+  {\large\textit{[PROJECT ID AND TITLE]}}\\[0.4em]
+  \textbf{Group Members:}\\
+  {[Student 1 Name]} (Project Lead) \quad
+  {[Student 2 Name]} (Research Lead) \quad
+  {[Student 3 Name]} (Engineering Lead)\\[0.3em]
+  \textbf{GitHub:} \url{[link]} \quad \textbf{Date:} \today\\[0.4em]
+  \rule{\linewidth}{0.4pt}
+}
+
+\section{Abstract}
+
+\begin{guidancebox}
+\textbf{Guidance.} 150--200 word summary of: (1) the problem, (2) what you have
+implemented so far, (3) your key preliminary result, and (4) your planned next steps.
+\end{guidancebox}
+
+Diffusion models can generate high-quality images, but conventional Denoising Diffusion Probabilistic Models (DDPMs) require many sequential denoising steps, making image generation computationally expensive. This project investigates the trade-off between image quality and sampling efficiency on MNIST and CIFAR-10, with the longer-term goal of combining quality, generation speed, and computational cost in a single evaluation metric. As a baseline, a DDPM was implemented from scratch using a compact U-Net noise predictor, sinusoidal timestep embeddings, a 1,000-step linear noise schedule, and a mean squared error noise-prediction objective. The saved MNIST run completed 20 training epochs and reports a preliminary Fr\'echet Inception Distance (FID) of 5.72. This is an initial result, not a controlled comparison; preprocessing and evaluation settings will be checked before drawing conclusions. Next, the model will be ported to CIFAR-10 and compare linear and cosine schedules, implement DDIM and measure FID at 10, 50, and 1,000 sampling steps, and evaluate classifier-free guidance and a single-step Consistency Model sampler. Sampling-time and computational-cost measurements will support the proposed quality-efficiency metric and comparisons.
+
+
+\section{Introduction and Problem Statement}
+
+\begin{guidancebox}
+\textbf{Guidance.} Brief recap of the problem and why it matters (1/2 page max).
+Focus on what has changed since the proposal---have you refined the scope or identified
+a clearer novel angle? Include the \textbf{research question} you are now testing.
+\end{guidancebox}
+
+[CONCISE PROBLEM DESCRIPTION AND RESEARCH QUESTION. NOTE ANY SCOPE CHANGES.]
+
+Diffusion models generate images by learning to reverse gradual noising of training examples. A conventional Denoising Diffusion Probabilistic Model (DDPM) samples through many sequential denoising steps, making generation computationally costly. Denoising Diffusion Implicit Models (DDIMs) and Consistency Models aim to reduce the number of model evaluations, but image quality and generation cost must be considered together. FID measures similarity between generated and real image distributions, but does not capture inference time or computational cost.
+
+The proposal's broad aim was to compare diffusion methods and develop a metric combining quality and efficiency. The project guide specifies staged tests on MNIST and CIFAR-10: establish a DDPM baseline, compare linear and cosine noise schedules, measure DDIM FID at 10, 50, and 1,000 steps, and assess classifier-free guidance and a single-step Consistency Model sampler. So far, a saved MNIST DDPM run reports an FID of 5.72 after 20 epochs. This is an initial result, not a controlled comparison; preprocessing and evaluation still require verification. These experiments will investigate whether faster sampling can reduce computational cost while preserving image quality, and whether a single metric can clearly summarize that trade-off.
+
+\section{Related Work (Updated)}
+
+\begin{guidancebox}
+\textbf{Guidance.} An extended version of your proposal survey. Add papers you
+discovered since the proposal. Include a comparative table or taxonomy where possible.
+Make explicit connections to your own approach. Add at least 2 new papers beyond
+the proposal. Target: $\approx$400--600 words.
+\end{guidancebox}
+
+
+The proposal introduced DDPMs and faster sampling methods as ways to study the balance between generated-image quality and computational cost. This updated discussion examines two additional methods relevant to that goal: DPM-Solver, a faster sampler for an existing diffusion model, and Classifier-Free Diffusion Guidance, which steers generation toward a requested class. Neither method has been implemented in this project. They offer complementary directions for future work: reducing the number of sampling evaluations and enabling class-conditional generation.
+
+\paragraph{\textit{DPM-Solver: A Fast ODE Solver for Diffusion Probabilistic Model Sampling in Around 10 Steps} (Lu et al., NeurIPS 2022).}
+Lu et al. treat diffusion sampling as solving a probability-flow ordinary differential equation and introduce a solver designed to approximate its solution with relatively few evaluations of the diffusion model. Unlike methods that require training a new generative model, DPM-Solver is a sampling procedure intended to work with an existing diffusion model. This makes it relevant to our efficiency investigation: it could potentially be applied to the trained MNIST denoiser and compared with the standard DDPM reverse process using FID and sampling cost at different numbers of model evaluations. We have not implemented DPM-Solver; its compatibility with our discrete-time model and available project time would need to be checked before adding it to the experiments.
+
+\paragraph{\textit{Classifier-Free Diffusion Guidance} (Ho and Salimans, 2022).}
+Ho and Salimans introduce a way to guide conditional diffusion generation without training a separate image classifier. During training, the conditioning information is sometimes withheld, teaching the diffusion network both conditional and unconditional noise predictions. At sampling time, those predictions are combined using a guidance scale to steer generation toward the requested condition. Stronger guidance can improve alignment with the condition, but may affect sample diversity and quality. This method is relevant to the project guide's objective of testing class-conditional generation on MNIST. Our current U-Net ignores digit labels, so applying this method would require adding label conditioning and training with label dropout. We have not implemented this change; the planned experiment is to compare guided and unguided class-conditional samples and assess their quality.
+
+\begin{center}
+\begin{tabular}{llp{4.5cm}p{5cm}}
+\toprule
+\textbf{Method} & \textbf{Year} & \textbf{Key idea} & \textbf{Relation to our work} \\
+\midrule
+DPM-Solver & 2022 & Solve the probability-flow ODE with a method designed to reduce diffusion-model evaluations. & Not implemented. We could test it as an alternative sampler for the trained denoiser, comparing quality and sampling cost if compatible. \\
+\midrule
+Classifier-Free Guidance & 2022 & Train with and without conditioning, then combine both predictions at sampling time to guide generation without a separate classifier. & Not implemented. We plan to condition the MNIST model on digit labels and compare guided with unguided generation. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Together, these methods motivate complementary experiments rather than interchangeable model comparisons. DPM-Solver addresses sampling efficiency by reducing model evaluations, while classifier-free guidance adds control over the generated digit class. Any future comparisons would need consistent datasets and evaluation procedures; published FID scores from different experiments should not be treated as directly comparable.
+
+
+
+\section{Methodology}
+
+\begin{guidancebox}
+\textbf{Guidance.} Describe what you have implemented in detail. Include:
+(1) architecture / model description with any modifications,
+(2) training procedure, hyperparameters, and optimiser,
+(3) data preprocessing pipeline,
+(4) evaluation protocol (metric definitions and dataset splits).
+Use equations where appropriate.
+\end{guidancebox}
+
+\subsection{Model Architecture}
+
+[DESCRIBE YOUR MODEL. If you are using a pre-trained backbone, state clearly
+which weights you use and what you add/modify on top.]
+
+We implemented and trained a denoising diffusion model to generate handwritten digits from the MNIST dataset. It uses a U-Net neural network to predict and remove noise from images, starting from random noise; the model was trained from randomly initialized weights rather than pretrained weights. The network takes a one-channel, $28\times28$ noisy image and its diffusion timestep as inputs, and predicts the Gaussian noise added to the image. The timestep is encoded with a 128-dimensional sinusoidal embedding and a two-layer multilayer perceptron with a SiLU activation. The image path begins with a convolution that maps the input to 64 channels. Two encoder residual blocks process features at successively lower spatial resolutions, with stride-2 convolutions increasing the channel widths from 64 to 128 and then 256. Two residual blocks form the bottleneck. Transposed convolutions then upsample the features; at each decoder stage, the features are concatenated with the matching encoder features through a skip connection. The decoder returns a one-channel noise prediction. Residual blocks use Group Normalization with eight groups, SiLU activations, $3\times3$ convolutions, timestep conditioning, and identity or $1\times1$ convolutional residual paths as required by the channel dimensions. The model has 4,788,417 trainable parameters.
+
+\subsection{Training Setup}
+
+For each image in a training batch, let $x_0$ denote the original, clean image. The notebook independently chooses a timestep $t$ uniformly from the $T=1{,}000$ forward-diffusion steps and draws Gaussian noise $\epsilon\sim\mathcal{N}(0,I)$ with the same shape as the image. Here, $I$ is the identity covariance matrix, so the noise values are standard normal. At step $t$, the noise schedule specifies $\beta_t$, the variance of the noise added at that step; $\alpha_t=1-\beta_t$ is the fraction of signal retained at that step, and $\bar{\alpha}_t=\prod_{s=1}^{t}\alpha_s$ is the cumulative signal retained through step $t$. The resulting noisy image is
+\[
+x_t=\sqrt{\bar{\alpha}_t}\,x_0+\sqrt{1-\bar{\alpha}_t}\,\epsilon,
+\]
+where $x_t$ is the image after adding noise up to timestep $t$. The U-Net, denoted by $\epsilon_\theta$, receives $x_t$ and $t$ and predicts the noise $\epsilon$ that was added. Training minimizes the mean squared error between that prediction and the known noise:
+\[
+\mathcal{L}=\mathbb{E}_{x_0,t,\epsilon}\!\left[\operatorname{MSE}\!\left(\epsilon,\epsilon_\theta(x_t,t)\right)\right].
+\]
+The expectation indicates that this error is averaged over training images, randomly selected timesteps, and sampled noise. The saved run uses AdamW and completed 20 epochs on a CUDA-enabled Colab T4 GPU. To generate images, the sampler begins with Gaussian noise and repeatedly applies the learned reverse update from timestep $T$ down to 1, adding noise at each step except the final one.
+\newline
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Hyperparameter} & \textbf{Value} \\
+\midrule
+Optimiser & AdamW \\
+Learning rate & $2\times10^{-4}$ \\
+Weight decay & $1\times10^{-4}$ \\
+Batch size & 128 \\
+Epochs & 20 \\
+Diffusion steps & 1,000 \\
+Noise schedule & Linear, $\beta_{\min}=10^{-4}$ to $\beta_{\max}=0.02$ \\
+Loss function & Mean squared error on predicted Gaussian noise \\
+Data augmentation & None \\
+Random seeds & Not fixed or reported; one saved run \\
+Trainable parameters & 4,788,417 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Dataset and Preprocessing}
+
+[DESCRIBE THE DATASET SPLIT (train/val/test sizes), ANY PREPROCESSING STEPS
+(resizing, normalisation, augmentation), AND HOW YOU HANDLE CLASS IMBALANCE
+IF APPLICABLE.]
+
+\section{Preliminary Results}
+
+\begin{guidancebox}
+\textbf{Guidance.} Present quantitative results for your baseline (and, if
+available, early results for your proposed method). Report mean $\pm$ std over
+at least 3 seeds. Compare to at least one published baseline. Include at least
+one qualitative example (figure or table). Discuss what the numbers tell you.
+\end{guidancebox}
+
+\subsection{Baseline Reproduction}
+
+\begin{notebox}
+\textbf{Target:} Match the published number within 1--2\% before proceeding
+to your proposed modification.
+\end{notebox}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Model} & \textbf{Metric 1 (Mean $\pm$ Std)} & \textbf{Metric 2 (Mean $\pm$ Std)} \\
+\midrule
+Published baseline & 3.17 &  9.46$\pm$ 0.11 \\
+Our reproduction & 5.71 & [Your value] $\pm$ [Std] \\
+Our proposed (early) & N/A & N/A \\
+\bottomrule
+\end{tabular}
+\captionof{table}{Preliminary results on MNIST, 10,000 images. All results are mean $\pm$ std over 3 seeds.}
+
+INSERT TABLE HERE
+
+\end{center}
+
+\subsection{Qualitative Analysis}
+
+[INSERT A REPRESENTATIVE FIGURE: e.g., a before/after image pair, a learning
+curve, a confusion matrix, or a prediction example. Caption should fully
+describe what is being shown.]
+
+\begin{figure}[h]
+  \centering
+  % \includegraphics[width=0.8\linewidth]{figures/qualitative.png}
+  \caption{Comparison between a DDPM generated set of images, and the MNIST images the model was trained on. On a 28x28 grid, the model's output looks indistinguishable from the training dataset's images that were drawn by hand.}
+  \label{fig:qual}
+\end{figure}
+
+\subsection{Discussion}
+
+[INTERPRET YOUR RESULTS. What works? What does not? What surprised you?
+Where are the biggest failure cases? What do you conclude so far?]
+
+\section{Challenges and Adaptations}
+
+\begin{guidancebox}
+\textbf{Guidance.} Describe any obstacles you encountered and how you
+addressed or plan to address them. Did you deviate from your proposal timeline?
+If so, explain why and provide an updated plan.
+\end{guidancebox}
+
+[DESCRIBE: (1) Technical obstacles (bugs, slow training, dataset issues),
+There were quite a few technical obstacles with the DDPM and DDIM versions of the project, mainly centered around compute power. Google Colab's free version sometimes did not allow us to access the GPU's and TPU's needed to train our model, which caused issues in trying to run the model multiple times to capture results. When we had access to the necessary compute, the datasets and model mostly acted as intended and allowed us to experiment and work on the model freely.
+(2) Conceptual challenges (method harder than expected, results not matching),
+Developing the DDPM was difficult, especially conceptually understanding the build of a UNet and how a trained UNet would be able to generate an image, but working more with PyTorch and understanding the literature from Ho et. Al (INSERT REFERENCE HERE) helped tremendously. After the initial concept of the DDPM was created and working as intended, building off it for the different variations and the DDIM was much easier.
+(3) How you resolved or plan to resolve each issue,
+Going forward, we plan to 
+(4) Updated timeline for Weeks 7--10.]
+
+\subsection{Updated Week 7--10 Plan}
+
+\begin{tabular}{lp{8cm}l}
+\toprule
+\textbf{Week} & \textbf{Tasks} & \textbf{Responsible} \\
+\midrule
+7 & Build and test Classifier Free Guidance model & Spencer \\
+8 & Build and test Consistency model, start final report & Oliver \\
+9 & Finish final report and practice presentation & All \\
+10 & Submit final report and present \textbf{(Final due)} & All \\
+\bottomrule
+\end{tabular}
+
+\section{Preliminary Novel Contribution (Optional Bonus)}
+
+\begin{guidancebox}
+\textbf{Guidance.} If you have a preliminary finding that goes beyond
+reproducing the baseline---an unexpected result, an improved ablation,
+an insight about the method---describe it here for the +2 bonus.
+Provide quantitative evidence.
+\end{guidancebox}
+
+[DESCRIBE YOUR PRELIMINARY NOVEL FINDING, WITH EVIDENCE. OR LEAVE EMPTY.]
+
+\section{Contribution Declaration}
+
+\begin{tabular}{lcc}
+\toprule
+\textbf{Member} & \textbf{Contributions (this period)} & \textbf{\%} \\
+\midrule
+{[Student 1]} & [e.g., Lit review, updated proposal section] & \% \\
+{[Student 2]} & [e.g., Model implementation, training runs] & \% \\
+{[Student 3] }& [e.g., Data pipeline, evaluation code] & \% \\
+\bottomrule
+\end{tabular}
+
+\section{References}
+
+\begin{enumerate}[label={[\arabic*]},leftmargin=*]
+  \item [Author(s), Year. ``Title.'' \textit{Venue}. arXiv:XXXX.XXXXX]
+  \item [\ldots]
+\end{enumerate}
+
+\end{document}
