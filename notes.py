@@ -16,6 +16,23 @@ betas = betas.clamp(min=1e-5, max=0.999).float()
 alphas = 1.0 - betas
 alpha_time_t = torch.cumprod(alphas, dim=0)
 
+
+
+T = 1000
+beta_start = 1e-4
+beta_end = 0.02
+betas = torch.linspace(
+    beta_start,
+    beta_end,
+    T,
+    device=device
+)
+alphas = 1.0 - betas
+alpha_time_t = torch.cumprod(alphas, dim=0)
+
+
+
+
 from google.colab import drive
 drive.mount('/content/gdrive')
 PATH = "/content/gdrive/My Drive/ddpm_cifar.pt"
@@ -93,3 +110,10 @@ class UNet(nn.Module):
         x = torch.cat([x, d1], dim=1)
         u3 = self.upblock3(x, t_emb)
         return self.output(u3)
+
+from google.colab import drive
+drive.mount('/content/drive')
+MODEL_PATH = './drive/MyDrive/ddpm.pt'
+checkpoint = torch.load(MODEL_PATH, weights_only=True, map_location=torch.device('cpu'))
+model.load_state_dict(checkpoint)
+
